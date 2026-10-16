@@ -14,13 +14,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  LogOut,
+  Hash,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { calculateAttendanceStats } from '../../services/dataService';
 
 export const Sidebar: React.FC = () => {
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const { subjects, tasks, semester } = useApp();
+  const { subjects, tasks, semester, profile, student, logoutStudent, showConfirmDialog } = useApp();
 
   // Navigation Items
   const navItems = [
@@ -56,12 +60,14 @@ export const Sidebar: React.FC = () => {
             <div className="min-w-0">
               <span className="font-extrabold text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
                 Attendly
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
-                  CSE (DS)
-                </span>
+                {student?.usn && (
+                  <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                    {student.usn}
+                  </span>
+                )}
               </span>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                SSIT &bull; {profile.labBatch ? `Batch ${profile.labBatch}` : '3rd Sem'}
+                {student?.name || profile.name || 'Student'} &bull; {profile.labBatch ? `Batch ${profile.labBatch}` : (profile.semester ? profile.semester.split(' ')[0] : 'Semester')}
               </p>
             </div>
           )}
@@ -175,6 +181,31 @@ export const Sidebar: React.FC = () => {
           </span>
         </div>
       )}
+
+      {/* Sign Out Action */}
+      <div className="p-3 border-t border-slate-200/80 dark:border-slate-800/80">
+        <button
+          onClick={() => {
+            showConfirmDialog({
+              title: 'Sign Out of Attendly?',
+              message: 'Your active student session will be cleared and you will return to the welcome screen.',
+              confirmLabel: 'Sign Out',
+              isDestructive: true,
+              onConfirm: async () => {
+                await logoutStudent();
+                navigate('/welcome', { replace: true });
+              },
+            });
+          }}
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer ${
+            collapsed ? 'justify-center px-0' : ''
+          }`}
+          title="Sign Out"
+        >
+          <LogOut className="w-4 h-4 shrink-0 text-rose-500" />
+          {!collapsed && <span>Sign Out</span>}
+        </button>
+      </div>
     </aside>
   );
 };

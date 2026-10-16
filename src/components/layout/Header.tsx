@@ -10,9 +10,10 @@ import {
   Clock,
   CheckCircle,
   User,
-  ShieldCheck,
   ChevronDown,
   Layers,
+  LogOut,
+  Hash,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { calculateAttendanceStats } from '../../services/dataService';
@@ -27,6 +28,9 @@ export const Header: React.FC = () => {
     preferences,
     toggleTheme,
     profile,
+    student,
+    logoutStudent,
+    showConfirmDialog,
     subjects,
     tasks,
     timetable,
@@ -91,6 +95,13 @@ export const Header: React.FC = () => {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Student Mode
         </span>
+
+        {student?.usn && (
+          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            <Hash className="w-3 h-3 text-indigo-500" />
+            {student.usn}
+          </span>
+        )}
 
         {/* Lab Batch Indicator Button */}
         {profile.labBatch ? (
@@ -259,15 +270,17 @@ export const Header: React.FC = () => {
 
           {isProfileOpen && (
             <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-3 z-50 animate-slide-up">
-              <div className="p-2 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{profile.name || 'Student Profile'}</p>
-                {profile.email ? (
-                  <p className="text-xs text-slate-500">{profile.email}</p>
-                ) : (
-                  <p className="text-xs text-slate-400">Set your email in Settings</p>
-                )}
+              <div className="p-2.5 border-b border-slate-100 dark:border-slate-800">
+                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                  {student?.name || profile.name || 'Student Profile'}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[11px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold">
+                    USN: {student?.usn || profile.studentId || 'N/A'}
+                  </span>
+                </div>
                 {profile.university && (
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium mt-1">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 truncate">
                     {profile.university}
                   </p>
                 )}
@@ -287,13 +300,35 @@ export const Header: React.FC = () => {
                 <button
                   onClick={() => {
                     setIsProfileOpen(false);
-                    navigate('/settings#supabase');
+                    navigate('/onboarding');
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 >
-                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  Supabase Integration Guide
+                  <Layers className="w-4 h-4 text-slate-400" />
+                  Semester Setup
                 </button>
+
+                <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      showConfirmDialog({
+                        title: 'Sign Out of Attendly?',
+                        message: 'Your active student session will be cleared and you will return to the welcome screen.',
+                        confirmLabel: 'Sign Out',
+                        isDestructive: true,
+                        onConfirm: async () => {
+                          await logoutStudent();
+                          navigate('/welcome', { replace: true });
+                        },
+                      });
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 text-rose-500" />
+                    Sign Out
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -531,10 +531,28 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   compactTimetable: false,
 };
 
+let activeStudentId: string | null = null;
+
+export function setActiveStudentId(studentId: string | null): void {
+  activeStudentId = studentId;
+}
+
+export function getActiveStudentId(): string | null {
+  return activeStudentId;
+}
+
+function getScopedKey(key: string): string {
+  if (activeStudentId) {
+    return `${key}_std_${activeStudentId}`;
+  }
+  return key;
+}
+
 // Storage helper functions
 function loadFromStorage<T>(key: string, defaultValue: T): T {
   try {
-    const item = localStorage.getItem(key);
+    const scopedKey = getScopedKey(key);
+    const item = localStorage.getItem(scopedKey);
     if (!item) return defaultValue;
     return JSON.parse(item) as T;
   } catch (e) {
@@ -545,7 +563,8 @@ function loadFromStorage<T>(key: string, defaultValue: T): T {
 
 function saveToStorage<T>(key: string, value: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    const scopedKey = getScopedKey(key);
+    localStorage.setItem(scopedKey, JSON.stringify(value));
   } catch (e) {
     console.error(`Error saving to storage key ${key}:`, e);
   }
