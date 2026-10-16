@@ -1,0 +1,6 @@
+{
+  "name": "Attendly — University Student Attendance Tracker",
+  "description": "Personal university attendance, timetable scanner, academic calendar, and productivity tracker for university students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
